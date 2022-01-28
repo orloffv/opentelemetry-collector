@@ -412,7 +412,13 @@ func authUnaryServerInterceptor(ctx context.Context, req interface{}, _ *grpc.Un
 		return nil, errMetadataNotFound
 	}
 
-	ctx, err := authenticate(ctx, headers)
+	clonedHeaders := headers.Copy()
+
+	if len(clonedHeaders["Host"]) == 0 && len(clonedHeaders[":authority"]) > 0 {
+		clonedHeaders["Host"] = clonedHeaders[":authority"]
+	}
+
+	ctx, err := authenticate(ctx, clonedHeaders)
 	if err != nil {
 		return nil, err
 	}
@@ -427,7 +433,13 @@ func authStreamServerInterceptor(srv interface{}, stream grpc.ServerStream, _ *g
 		return errMetadataNotFound
 	}
 
-	ctx, err := authenticate(ctx, headers)
+	clonedHeaders := headers.Copy()
+
+	if len(clonedHeaders["Host"]) == 0 && len(clonedHeaders[":authority"]) > 0 {
+		clonedHeaders["Host"] = clonedHeaders[":authority"]
+	}
+
+	ctx, err := authenticate(ctx, clonedHeaders)
 	if err != nil {
 		return err
 	}
